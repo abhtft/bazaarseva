@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-gunicorn server:app --bind 0.0.0.0:$PORT 
+gunicorn "kirana_suvidha.application:create_app()" --bind 0.0.0.0:$PORT 

@@ -13,6 +13,7 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.enums import TA_CENTER, TA_RIGHT
 from bson import ObjectId
 from dotenv import load_dotenv
+from flask_cors import CORS
 
 # Load environment variables
 load_dotenv()
@@ -21,6 +22,7 @@ def create_app():
     """Create and configure the Flask application"""
     app = Flask(__name__, 
                 template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
+    CORS(app)  # Enable CORS for all routes
     
     # Configure MongoDB
     app.config['MONGO_URI'] = os.getenv('MONGODB_URI', 'mongodb://localhost:27017/')
@@ -28,9 +30,14 @@ def create_app():
     app.config['MONGO_COLLECTION_NAME'] = os.getenv('MONGODB_COLLECTION_NAME', 'shopping_lists')
     
     # Initialize MongoDB client
-    client = MongoClient(app.config['MONGO_URI'])
-    db = client[app.config['MONGO_DB_NAME']]
-    collection = db[app.config['MONGO_COLLECTION_NAME']]
+    try:
+        client = MongoClient(app.config['MONGO_URI'])
+        db = client[app.config['MONGO_DB_NAME']]
+        collection = db[app.config['MONGO_COLLECTION_NAME']]
+        print("✅ MongoDB Connection Successful!")
+    except Exception as e:
+        print(f"❌ MongoDB Connection Error: {e}")
+        db = None
     
     # Ensure downloads directory exists
     if not os.path.exists('downloads'):
@@ -297,4 +304,27 @@ def create_app():
             print(f"Error in view_list: {e}")
             return "Error loading document", 500
     
+    @app.route('/api/data', methods=['GET'])
+    def get_data():
+        try:
+            # Example API endpoint
+            data = list(collection.find({}, {'_id': 0}))
+            return jsonify(data)
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @app.errorhandler(404)
+    def not_found(e):
+        return jsonify({"error": "Resource not found"}), 404
+
+    @app.errorhandler(500)
+    def server_error(e):
+        return jsonify({"error": "Internal server error"}), 500
+
     return app 
+
+# This is for local development only
+if __name__ == '__main__':
+    app = create_app()
+    port = int(os.getenv('PORT', 3000))
+    app.run(host='0.0.0.0', port=port) 
