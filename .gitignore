@@ -39,3 +39,4 @@ env/
 
 # Local development
 .DS_Store 
+node_modules

@@ -236,8 +236,11 @@ def create_app():
     
     @app.route('/success/<list_id>')
     def success(list_id):
-        bill_number = request.args.get('bill_number')
-        return render_template('success.html', list_id=list_id, bill_number=bill_number)
+        shopping_list = collection.find_one({'_id': ObjectId(list_id)})
+        return render_template('success.html', 
+                             list_id=list_id, 
+                             bill_number=shopping_list.get('bill_number'),
+                             customer_name=shopping_list.get('customer_name'))
     
     @app.route('/download_pdf/<list_id>')
     def download_pdf(list_id):

@@ -62,40 +62,40 @@
         }
     </style>
     <script>
-        function saveAndExit() {
-            // Download PDF and close window
-            fetch('{{ url_for("save_and_exit", list_id=list_id) }}')
+        function savePDF() {
+            const billNumber = document.getElementById('billNumber').textContent;
+            const listId = document.getElementById('listId').textContent;
+            const customerName = document.getElementById('customerName').textContent;
+            
+            // Create filename using customer name and bill number
+            const filename = `${customerName}_${billNumber}.pdf`.replace(/\s+/g, '_');
+            
+            fetch(`/generate_pdf/${listId}`)
                 .then(response => response.blob())
                 .then(blob => {
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = '{{ bill_number }}.pdf';
+                    a.download = filename; // Use our generated filename
                     document.body.appendChild(a);
                     a.click();
-                    
-                    // Close window after download starts
-                    setTimeout(() => {
-                        window.close();
-                    }, 1000);
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
                 });
         }
 
-        function saveAndNewForm() {
-            // Download PDF and open new form
-            fetch('{{ url_for("save_and_exit", list_id=list_id) }}')
-                .then(response => response.blob())
-                .then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = '{{ bill_number }}.pdf';
-                    document.body.appendChild(a);
-                    a.click();
-                    
-                    // Open new form
-                    window.location.href = '{{ url_for("index") }}';
-                });
+        function saveAndExit() {
+            savePDF();
+            setTimeout(() => {
+                window.location.href = '/exit';
+            }, 1000);
+        }
+
+        function saveAndNew() {
+            savePDF();
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
         }
     </script>
 </head>
@@ -115,10 +115,11 @@
             <button onclick="saveAndExit()" class="button save-exit">
                 Save & Exit
             </button>
-            <button onclick="saveAndNewForm()" class="button new-form">
+            <button onclick="saveAndNew()" class="button new-form">
                 Save & New Form
             </button>
         </div>
     </div>
+    <span id="customerName" style="display: none;">{{ customer_name }}</span>
 </body>
 </html> 
