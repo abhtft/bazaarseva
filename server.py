@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, render_template
 from flask_cors import CORS
 from pymongo import MongoClient
 from datetime import datetime
@@ -76,5 +76,6 @@ def server_error(e):
     return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
-    print("🚀 Server starting on http://localhost:3000")
-    app.run(port=3000, debug=False)
+    port = int(os.getenv('PORT', 3000))
+    print("🚀 Server starting on http://localhost:" + str(port))
+    app.run(host='0.0.0.0', port=port, debug=False)
